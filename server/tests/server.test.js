@@ -16,7 +16,9 @@ const todosDumi = [
   },
   {
     _id: new ObjectID(),
-    text: "3"
+    text: "Test update",
+    completed: true,
+    completedAt: new Date().getTime()
   }
 ];
 
@@ -175,5 +177,41 @@ describe("DELETE /todos/:id", () => {
           })
           .catch(e => done(e));
       });
+  });
+});
+
+describe("PATCH /todos/:id", () => {
+  it("should update a todo", done => {
+    var hexId = todosDumi[0]._id.toHexString();
+    var body = { text: "Testing PATCH method.", completed: true };
+
+    request(app)
+      .patch(`/todos/${hexId}`)
+      .send(body)
+      .expect(200)
+      .expect(res => {
+        expect(res.body.todo).toExist();
+        expect(res.body.todo.text).toBe(body.text);
+        expect(res.body.todo.completed).toBe(true);
+        expect(res.body.todo.completedAt).toBeA("number");
+      })
+      .end(done);
+  });
+
+  it("should clear completedAt when todo is not completed", done => {
+    var hexId = todosDumi[2]._id.toHexString();
+    var body = { text: "Testing PATCH method, completed to false.", completed: false };
+
+    request(app)
+      .patch(`/todos/${hexId}`)
+      .send(body)
+      .expect(200)
+      .expect(res => {
+        expect(res.body.todo).toExist();
+        expect(res.body.todo.text).toBe(body.text);
+        expect(res.body.todo.completed).toBe(false);
+        expect(res.body.todo.completedAt).toNotExist();
+      })
+      .end(done)
   });
 });
