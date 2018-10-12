@@ -1,10 +1,7 @@
 const mongoose = require("mongoose");
 
-const dbName = "TodoApp";
-const port = 27017;
 const mdOptions = { useNewUrlParser: true };
-const urlLocal = `mongodb://localhost:${port}/${dbName}`;
-const url = process.env.MONGODB_URI || urlLocal;
+const url = process.env.MONGODB_URI;
 
 mongoose.Promise = global.Promise;
 mongoose.connect(
