@@ -24,7 +24,56 @@ const todosDumi = [
 beforeEach(done => {
   Todo.deleteMany({})
     .then(() => Todo.insertMany(todosDumi))
-    .then(() => done());
+    .then(() => done())
+    .catch(e => done(e));
+});
+
+describe("GET /todos", () => {
+  it("should get all todos", done => {
+    request(app)
+      .get("/todos")
+      .expect(200)
+      .expect(res => {
+        expect(res.body.todos.length).toBeGreaterThan(0);
+      })
+      .end((err, res) => {
+        if (err) {
+          done(err);
+          return;
+        }
+
+        done();
+      });
+  });
+});
+
+describe("GET /todos/:id", () => {
+  it("should get a todo by its id", done => {
+    request(app)
+      .get(`/todos/${todosDumi[0]._id.toHexString()}`)
+      .expect(200)
+      .expect(res => {
+        expect(res.body.todo).toExist();
+        expect(res.body.todo.text).toBe(todosDumi[0].text);
+      })
+      .end(done);
+  });
+
+  it("should get a 404 - id not found", done => {
+    var hexId = new ObjectID().toHexString();
+
+    request(app)
+      .get(`/todos/${hexId}`)
+      .expect(404)
+      .end(done);
+  });
+
+  it("should get a 400 - id not valid", done => {
+    request(app)
+      .get("/todos/123")
+      .expect(400)
+      .end(done);
+  });
 });
 
 describe("POST /todos", () => {
@@ -86,29 +135,28 @@ describe("POST /todos", () => {
   });
 });
 
-describe("GET /todos", () => {
-  it("should get all todos", done => {
-    request(app)
-      .get("/todos")
-      .expect(200)
-      .expect(res => {
-        expect(res.body.todos.length).toBeGreaterThan(0);
-      })
-      .end((err, res) => {
-        if (err) {
-          done(err);
-          return;
-        }
+describe("DELETE /todos/:id", () => {
+  it("should get a 404 - id not found", done => {
+    var hexId = new ObjectID().toHexString();
 
-        done();
-      });
+    request(app)
+      .delete(`/todos/${hexId}`)
+      .expect(404)
+      .end(done);
   });
-});
 
-describe("GET /todos/:id", () => {
-  it("should get a todo by its id", done => {
+  it("should get a 400 - id not valid", done => {
     request(app)
-      .get(`/todos/${todosDumi[0]._id.toHexString()}`)
+      .delete("/todos/123")
+      .expect(400)
+      .end(done);
+  });
+
+  it("should delete a todo by its id", done => {
+    var hexId = todosDumi[0]._id.toHexString();
+
+    request(app)
+      .delete(`/todos/${hexId}`)
       .expect(200)
       .expect(res => {
         expect(res.body.todo).toExist();
@@ -120,37 +168,12 @@ describe("GET /todos/:id", () => {
           return;
         }
 
-        done();
-      });
-  });
-
-  it("should get a 404 - id not found", done => {
-    var hexId = new ObjectID().toHexString();
-
-    request(app)
-      .get(`/todos/${hexId}`)
-      .expect(404)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-          return;
-        }
-
-        done();
-      });
-  });
-
-  it("should get a 400 - id not valid", done => {
-    request(app)
-      .get("/todos/123")
-      .expect(400)
-      .end((err, res) => {
-        if (err) {
-          done(err);
-          return;
-        }
-
-        done();
+        Todo.findById(hexId)
+          .then(r => {
+            expect(r).toNotExist();
+            done();
+          })
+          .catch(e => done(e));
       });
   });
 });
