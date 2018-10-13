@@ -200,7 +200,10 @@ describe("PATCH /todos/:id", () => {
 
   it("should clear completedAt when todo is not completed", done => {
     var hexId = todosDumi[2]._id.toHexString();
-    var body = { text: "Testing PATCH method, completed to false.", completed: false };
+    var body = {
+      text: "Testing PATCH method, completed to false.",
+      completed: false
+    };
 
     request(app)
       .patch(`/todos/${hexId}`)
@@ -212,6 +215,6 @@ describe("PATCH /todos/:id", () => {
         expect(res.body.todo.completed).toBe(false);
         expect(res.body.todo.completedAt).toNotExist();
       })
-      .end(done)
+      .end(done);
   });
 });
